@@ -1,0 +1,25 @@
+services:
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: fraud_api
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/app/models
+    restart: unless-stopped
+
+  streamlit:
+    build:
+      context: .
+      dockerfile: Dockerfile.streamlit
+    container_name: fraud_streamlit
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./models:/app/models
+    depends_on:
+      - api
+    restart: unless-stopped

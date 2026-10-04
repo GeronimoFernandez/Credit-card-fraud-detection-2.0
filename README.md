@@ -31,13 +31,13 @@ Threshold optimization
         ↓
 Reusable model artifact
         ↓
-Streamlit application        ← current
+Streamlit application        ← complete
         ↓
-FastAPI inference API        ← next
+FastAPI inference API        ← complete
         ↓
-Docker containerization      ← next
+Docker containerization      ← complete
         ↓
-MLflow experiment & model tracking  ← next
+MLflow experiment & model tracking  ← complete
 ```
 
 ---
@@ -202,16 +202,79 @@ This allows the application to load the complete inference configuration without
 
 ---
 
-## 🏗️ Production-Oriented Evolution
+## ⚡ FastAPI Inference API
 
-Version 2.0 is being developed progressively, with each technology addressing a specific engineering concern.
+The model is exposed as a REST API built with FastAPI, separating the inference logic from the user interface.
+
+**Endpoints:**
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/health` | Returns API status and model load state |
+| `POST` | `/predict` | Accepts transaction data, returns fraud probability and classification |
+
+**Run the API locally:**
+
+```bash
+uvicorn api.main:app --reload
+```
+
+Interactive documentation available at: `http://localhost:8000/docs`
+
+---
+
+## 🐳 Docker
+
+The application is containerized using Docker Compose, running two isolated services simultaneously.
+
+| Service | Technology | Port |
+|---|---|---|
+| Inference API | FastAPI + Uvicorn | 8000 |
+| Interactive App | Streamlit | 8501 |
+
+**Run both services with a single command:**
+
+```bash
+docker compose up --build
+```
+
+---
+
+## 📊 MLflow Experiment Tracking
+
+All training runs are tracked using MLflow, logging parameters, metrics, and model artifacts for full reproducibility.
+
+![MLflow Experiment](assets/mlflow_experiment.png)
+![MLflow Metrics](assets/mlflow_metrics.png)
+
+**Tracked parameters:** features, threshold, scale_pos_weight, XGBoost hyperparameters  
+**Tracked metrics:** ROC-AUC, PR-AUC, Precision, Recall, F1 — on both validation and test sets  
+**Tracked artifacts:** serialized model pipeline (.joblib)
+
+**Run a new training experiment:**
+
+```bash
+python train.py
+```
+
+**View experiment results:**
+
+```bash
+mlflow ui --backend-store-uri sqlite:///mlflow.db --port 5001
+```
+
+Open `http://localhost:5001` to explore runs, compare metrics, and access model artifacts.
+
+---
+
+## 🏗️ Production-Oriented Evolution
 
 | Stage | Technology | Status |
 |---|---|---|
 | Interactive interface | Streamlit | ✅ Complete |
-| Inference API | FastAPI | 🔜 Next |
-| Containerization | Docker | 🔜 Next |
-| Experiment tracking | MLflow | 🔜 Next |
+| Inference API | FastAPI | ✅ Complete |
+| Containerization | Docker | ✅ Complete |
+| Experiment tracking | MLflow | ✅ Complete |
 
 ---
 
@@ -220,11 +283,11 @@ Version 2.0 is being developed progressively, with each technology addressing a 
 **Machine Learning**
 - Python 3.12, Pandas, NumPy, Scikit-learn, XGBoost
 
-**Application**
-- Streamlit, Joblib
+**Application & API**
+- Streamlit, FastAPI, Uvicorn, Joblib
 
-**Planned Production Stack**
-- FastAPI, Docker, MLflow
+**Production Stack**
+- Docker, Docker Compose, MLflow
 
 **Data Analysis & Visualization**
 - Matplotlib, Seaborn
@@ -237,7 +300,8 @@ Version 2.0 is being developed progressively, with each technology addressing a 
 Credit-card-fraud-detection-2.0/
 │
 ├── data/
-│   └── fraud_clean.csv
+│   └── processed/
+│       └── fraud_clean.csv
 │
 ├── notebooks/
 │   └── modeling.ipynb
@@ -249,36 +313,52 @@ Credit-card-fraud-detection-2.0/
 │   ├── app.py
 │   └── utils.py
 │
+├── api/
+│   ├── __init__.py
+│   ├── main.py
+│   └── schemas.py
+│
 ├── assets/
 │   ├── app_screenshot_1.png
-│   └── app_screenshot_2.png
+│   ├── app_screenshot_2.png
+│   ├── mlflow_experiment.png
+│   └── mlflow_metrics.png
 │
+├── train.py
+├── mlflow.db
+├── Dockerfile.api
+├── Dockerfile.streamlit
+├── docker-compose.yml
 ├── requirements.txt
 ├── README.md
 └── .gitignore
 ```
 
-The structure will evolve as FastAPI, Docker, and MLflow are introduced.
-
 ---
 
 ## 🚀 How to Run
 
+**Streamlit app:**
 ```bash
-# Clone the repository
-git clone https://github.com/GeronimoFernandez/Credit-card-fraud-detection-2.0.git
-
-# Move into the project directory
-cd Credit-card-fraud-detection-2.0
-
-# Install the dependencies
 pip install -r requirements.txt
-
-# Run the Streamlit application
 streamlit run app/app.py
 ```
 
-The application will be available locally at: `http://localhost:8501`
+**FastAPI:**
+```bash
+uvicorn api.main:app --reload
+```
+
+**Docker (both services):**
+```bash
+docker compose up --build
+```
+
+**MLflow training + UI:**
+```bash
+python train.py
+mlflow ui --backend-store-uri sqlite:///mlflow.db --port 5001
+```
 
 ---
 
@@ -294,10 +374,10 @@ The application will be available locally at: `http://localhost:8501`
 - [x] Model artifact creation
 - [x] Streamlit application
 - [x] Deployment
-- [ ] FastAPI inference API
-- [ ] Docker containerization
-- [ ] MLflow experiment tracking
-- [ ] Production-oriented architecture
+- [x] FastAPI inference API
+- [x] Docker containerization
+- [x] MLflow experiment tracking
+- [x] Production-oriented architecture
 
 ---
 
